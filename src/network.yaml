@@ -11,9 +11,9 @@ neuron:
     tauRho:   1     # spike function derivative time constant (relative to theta)
     scaleRho: 1     # spike function derivative scale factor
 training:
-    transf_method:    TonicFrames #SlayerTD (SlayerTD assumes fix_length=True)
+    transf_method:    SlayerTD #TonicFrames (SlayerTD assumes fix_length=True)
     fix_length:       True  # crop samples to the first 'tSample' ms
-    binning_mode:     SUM #OR (the way the spikes are binned into frames)
+    binning_mode:     OR #SUM (the way the spikes are binned into frames)
     sliced_dataset:   True #False (True is a lighter/faster implementation)
     seed:             0     # control the randomness reproducibility 
     error:
