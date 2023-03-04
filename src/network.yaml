@@ -1,0 +1,29 @@
+simulation:
+    Ts:      5      # simulation step size (ms)
+    tSample: 1500   # time length of sample (ms) for the simulation (fixed)
+    nSample: 8     # number of samples to process at once (batch_size) [10-20]
+neuron:
+    type:     SRMALPHA  # neuron type
+    theta:    10    # neuron threshold
+    tauSr:    10.0  # neuron time constant
+    tauRef:   10.0  # neuron refractory time constant #1.0
+    scaleRef: 20    # neuron refractory response scaling (relative to theta) #2
+    tauRho:   1     # spike function derivative time constant (relative to theta)
+    scaleRho: 1     # spike function derivative scale factor
+training:
+    transf_method:    TonicFrames #SlayerTD (SlayerTD assumes fix_length=True)
+    fix_length:       True  # crop samples to the first 'tSample' ms
+    binning_mode:     SUM #OR (the way the spikes are binned into frames)
+    sliced_dataset:   True #False (True is a lighter/faster implementation)
+    seed:             0     # control the randomness reproducibility 
+    error:
+        type: NumSpikes #ProbSpikes #NumSpikes
+        tgtSpikeRegion: {start: 0, stop: 1500}  # only valid for NumSpikes and ProbSpikes
+        tgtSpikeCount: {true: 180, false: 30}   # only valid for NumSpikes
+    path:
+        out:          output/
+        data:         ../data/                                           ## /home/data/
+        file_list:    ../data/filelist.txt    #filelist_excludingS3.txt  ## /home/data/filelist.txt
+        cache:        ../data/cache/                                     ## /home/data/cache/
+        
+        
