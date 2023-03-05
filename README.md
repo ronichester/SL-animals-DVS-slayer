@@ -36,9 +36,9 @@ Package Contents:
 
 The SL-Animals-DVS dataset implementation code is in *dataset.py*, and it's basically a Pytorch Dataset object. The library [*Tonic*](https://tonic.readthedocs.io/en/latest/index.html#) was used to read and process the DVS recordings.  
 
-The main functions to train, test, split the dataset and plot the results are in *learning_tool.py*. The Spiking Neural Network model is in *model.py* (MyNetwork), and reproduces the architecture described in the SL-animals paper. The file *network.yaml* contains the main parameters that can be customized like batch size, sampling time, simulation window, neuron type, data path, and many others.  
+The main functions to train, test, split the dataset and plot the results are in *learning_tools.py*. The Spiking Neural Network model is in *model.py* (MyNetwork), and reproduces the architecture described in the SL-animals paper. The file *network.yaml* contains the main parameters that can be customized like batch size, sampling time, simulation window, neuron type, data path, and many others.  
 
- The main program is in *sl_animals_layer.py*, which uses the correct experimental procedure for training a network using cross validation after dividing the dataset into train, validation and test sets. A simpler version of the main program is in *train_test_only.py*, which is basically the same except dividing the dataset only into train and test sets, in an effort to replicate the published results. Apparently, the benchmark results were reported in this simpler dataset split configuration, which is not optimal.  
+ The main program is in *sl_animals_slayer.py*, which uses the correct experimental procedure for training a network using cross validation after dividing the dataset into train, validation and test sets. A simpler version of the main program is in *train_test_only.py*, which is basically the same except dividing the dataset only into train and test sets, in an effort to replicate the published results. Apparently, the benchmark results were reported in this simpler dataset split configuration, which is not optimal.  
 
  Finally, *utils.py* contains some functions to visualize the dataset samples, and split the dataset recordings into slices and saving it to disk.
 
@@ -48,11 +48,15 @@ The main functions to train, test, split the dataset and plot the results are in
 git clone https://github.com/ronichester/SL-animals-DVS-slayer
 ```
 2. Download the dataset in [this link](http://www2.imse-cnm.csic.es/neuromorphs/index.php/SL-ANIMALS-DVS-Database);
-3. Save the DVS recordings in the *recordings* folder and the file tags in the *tags* folder;
+3. Save the DVS recordings in the *data/recordings* folder and the file tags in the *data/tags* folder;
 4. Edit the custom parameters according to your preferences in *network.yaml*. The default parameters setting is functional and was tailored according to the information provided in the relevant papers, the reference codes used as a basis, and mostly by trial and error (lots of it!). You are encouraged to edit the main parameters and **let me know if you got better results**.
 6. Run *sl_animals_slayer.py* (or *train_test_only.py*) to start the SNN training:
 ```
-python sl_animals_stbp.py
+python sl_animals_slayer.py
+```
+or
+```
+python train_test_only.py
 ```
 7. The Tensorboard logs will be saved in *src/logs* and the network weights will be saved in *src/weights*. To visualize the logs with tensorboard:
   - open a terminal (I use Anaconda Prompt), go to the *src* directory and type:
