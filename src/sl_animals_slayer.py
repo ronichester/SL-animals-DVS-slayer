@@ -60,7 +60,7 @@ if __name__ == '__main__':
     for fold, (train_set, test_set) in enumerate(train_test_generator, start=1):
        
         #logging statistics with Tensorboard
-        writer = SummaryWriter('./summaries/fold{}'.format(fold))
+        writer = SummaryWriter('./logs/fold{}'.format(fold))
        
         #divide train_set into train and validation (85-15)
         train_set, val_set = train_test_split(train_set, test_size=0.15, 

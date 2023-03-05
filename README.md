@@ -58,7 +58,7 @@ or
 ```
 python train_test_only.py
 ```
-7. The Tensorboard logs will be saved in *src/logs* and the network weights will be saved in *src/weights*. To visualize the logs with tensorboard:
+7. The network weights, training curves and spike plots will be saved in *src/output*. The Tensorboard logs will be saved in *src/logs*; to visualize the training with tensorboard:
   - open a terminal (I use Anaconda Prompt), go to the *src* directory and type:
 ```
 tensorboard --logdir=logs
