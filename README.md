@@ -1,4 +1,4 @@
-# SL-animals-DVS-slayer
+# SL-animals-DVS training with SLAYER
 This repository contains a SLAYER (Spiking Layer Error Reassignment in Time) implementation on the SL-Animals-DVS dataset using Pytorch and the SLAYER package software.
 
 **A BRIEF INTRODUCTION:**  
