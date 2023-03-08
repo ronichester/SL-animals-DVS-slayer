@@ -2,7 +2,7 @@
 This repository contains a SLAYER (Spiking Layer Error Reassignment in Time) implementation on the SL-Animals-DVS dataset using Pytorch and the SLAYER package software.
 
 **A BRIEF INTRODUCTION:**  
-SLAYER is an offline training method that directly trains a SNN.  
+SLAYER is an offline training method that directly trains a Spiking Neural Network (SNN).  
 Therefore, it is a suitable method to train SNNs, which are biologically plausible networks (in short).  
 The SL-animals-DVS is a dataset of sign language (SL) gestures peformed by different people representing animals, and recorded with a Dynamic Vision Sensor (DVS).  
 
@@ -11,10 +11,10 @@ The SL-animals-DVS is a dataset of sign language (SL) gestures peformed by diffe
 
 <p align="center"> </p>  
 
-The reported results in the SL-animals paper were a test accuracy of 60.9% +- 4.58% in the whole dataset and 78.03% +- 3.08% on the reduced dataset (excluding group S3). The results achieved with the implementation published here: **Test Accuracy (whole dataset): 54.83% +- 6.61%; Test Accuracy (exluding S3): 62.05% +- 5.78%**.  
+The reported results in the SL-animals paper were a test accuracy of 60.9% +- 4.58% in the whole dataset and 78.03% +- 3.08% on the reduced dataset (excluding group S3). The results achieved with the implementation published here, using train/test sets only: **Test Accuracy (whole dataset): 54.83% +- 6.61%; Test Accuracy (exluding S3): 62.05% +- 5.78%**.  
            
 ## Requirements
-While not sure if the list below contain the actual minimums, it will run for sure if you do have the following:
+While not sure if the list below contains the actual minimums, it will run for sure if you do have the following:
 - Python 3.0+
 - Pytorch 1.11+
 - CUDA 11.3+
@@ -36,7 +36,7 @@ Package Contents:
 
 The SL-Animals-DVS dataset implementation code is in *dataset.py*, and it's basically a Pytorch Dataset object. The library [*Tonic*](https://tonic.readthedocs.io/en/latest/index.html#) was used to read and process the DVS recordings.  
 
-The main functions to train, test, split the dataset and plot the results are in *learning_tools.py*. The Spiking Neural Network model is in *model.py* (MyNetwork), and reproduces the architecture described in the SL-animals paper. The file *network.yaml* contains the main parameters that can be customized like batch size, sampling time, simulation window, neuron type, data path, and many others.  
+The main functions to train, test, split the dataset and plot the results are in *learning_tools.py*. The Spiking Neural Network model is in *model.py* (MyNetwork), and reproduces the architecture described in the SL-animals paper. The file *network.yaml* contains the main parameters that can be customized like *batch size*, *sampling time*, *simulation window*, *neuron type*, *data path*, and many others.  
 
  The main program is in *sl_animals_slayer.py*, which uses the correct experimental procedure for training a network using cross validation after dividing the dataset into train, validation and test sets. A simpler version of the main program is in *train_test_only.py*, which is basically the same except dividing the dataset only into train and test sets, in an effort to replicate the published results. Apparently, the benchmark results were reported in this simpler dataset split configuration, which is not optimal.  
 
