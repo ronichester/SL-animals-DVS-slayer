@@ -34,7 +34,6 @@ net_params = snn.params("network.yaml")
 #initializing variables
 seed = net_params['training']['seed']     #fixing the seed
 val_losses, val_accuracies = [], []       #initializing val history
-test_losses, test_accuracies = [], []     #initializing test history
 
 #creating a generator to split the data into 4 folds of train/test files
 train_test_generator = kfold_split(net_params['training']['path']['file_list'],
@@ -145,36 +144,23 @@ if __name__ == '__main__':
         #test the network (for plotting purposes only)
         print('\nStarting Testing of fold {}...'.format(fold))
         test_stats = test_net(test_loader, net_params, device, writer, fold=fold)
-        test_loss  = test_stats.testing.minloss       #test loss
-        test_acc   = test_stats.testing.maxAccuracy   #test accuracy
-            
+        
         #save this fold's losses and accuracies in history
         val_losses.append(min_loss)
         val_accuracies.append(max_acc)
-        test_losses.append(test_loss)
-        test_accuracies.append(test_acc)
-            
+
     #end of cross validation---------------------------------------------
     global_end_time = datetime.now()     #monitor total training time
     print('\nGlobal Training Time:', global_end_time - global_st_time)
     
     #print results
-    print("\nMin Test Loss on 4 folds:", val_losses)
-    print("Min Test Loss:     {:.2f} +- {:.2f}".format(
+    print("\nMin Val. Loss on 4 folds:", val_losses)
+    print("Min Val. Loss:     {:.2f} +- {:.2f}".format(
         np.mean(val_losses), np.std(val_losses)))
 
-    print("\nMax Test Accuracy on 4 folds:", val_accuracies)
-    print("Max Test Accuracy:     {:.2f}% +- {:.2f}%".format(
+    print("\nMax Val. Accuracy on 4 folds:", val_accuracies)
+    print("Max Val. Accuracy:     {:.2f}% +- {:.2f}%".format(
         100 * np.mean(val_accuracies), 100 * np.std(val_accuracies)))
-    
-    #redundant here, test_losses should be equal val_losses; just sanity check
-    print("\nTest Loss on 4 folds:", test_losses)
-    print("Average Test Loss:     {:.2f} +- {:.2f}".format(
-        np.mean(test_losses), np.std(test_losses)))
-
-    print("\nTest Accuracy on MIN LOSS (4 folds):", test_accuracies)
-    print("Average Test Accuracy on MIN LOSS:     {:.2f}% +- {:.2f}%".format(
-        100 * np.mean(test_accuracies), 100 * np.std(test_accuracies)))
 
 # plt.close('all')  #close all open figures
     
