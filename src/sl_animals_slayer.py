@@ -53,7 +53,7 @@ if __name__ == '__main__':
         dataset_type = AnimalsDvsDataset
     
     #print header
-    print('Welcome to SLAYER Training! Starting 4-fold cross validation...')
+    print('Welcome to SLAYER Training! Starting 4-fold cross validation (train/validation/test)...')
     global_st_time = datetime.now()       #monitor total training time 
     
     #CROSS-VALIDATION: iterate for each fold

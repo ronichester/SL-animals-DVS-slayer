@@ -33,7 +33,7 @@ net_params = snn.params("network.yaml")
 
 #initializing variables
 seed = net_params['training']['seed']     #fixing the seed
-val_losses, val_accuracies = [], []       #initializing val history
+test_losses, test_accuracies = [], []     #initializing test history
 
 #creating a generator to split the data into 4 folds of train/test files
 train_test_generator = kfold_split(net_params['training']['path']['file_list'],
@@ -52,7 +52,7 @@ if __name__ == '__main__':
         dataset_type = AnimalsDvsDataset
     
     #print header
-    print('Welcome to SLAYER Training! Starting 4-fold cross validation...')
+    print('Welcome to SLAYER Training! Starting 4-fold cross validation (train/test only)...')
     global_st_time = datetime.now()       #monitor total training time 
     
     #CROSS-VALIDATION: iterate for each fold
@@ -146,21 +146,21 @@ if __name__ == '__main__':
         test_stats = test_net(test_loader, net_params, device, writer, fold=fold)
         
         #save this fold's losses and accuracies in history
-        val_losses.append(min_loss)
-        val_accuracies.append(max_acc)
+        test_losses.append(min_loss)
+        test_accuracies.append(max_acc)
 
     #end of cross validation---------------------------------------------
     global_end_time = datetime.now()     #monitor total training time
     print('\nGlobal Training Time:', global_end_time - global_st_time)
     
     #print results
-    print("\nMin Val. Loss on 4 folds:", val_losses)
-    print("Min Val. Loss:     {:.2f} +- {:.2f}".format(
-        np.mean(val_losses), np.std(val_losses)))
+    print("\nMin Test Loss on 4 folds:", test_losses)
+    print("Average (min) Test Loss:     {:.2f} +- {:.2f}".format(
+        np.mean(test_losses), np.std(test_losses)))
 
-    print("\nMax Val. Accuracy on 4 folds:", val_accuracies)
-    print("Max Val. Accuracy:     {:.2f}% +- {:.2f}%".format(
-        100 * np.mean(val_accuracies), 100 * np.std(val_accuracies)))
+    print("\nMax Test Accuracy on 4 folds:", test_accuracies)
+    print("Average (max) Test Accuracy:     {:.2f}% +- {:.2f}%".format(
+        100 * np.mean(test_accuracies), 100 * np.std(test_accuracies)))
 
 # plt.close('all')  #close all open figures
     
