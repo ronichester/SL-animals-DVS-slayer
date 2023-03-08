@@ -16,9 +16,10 @@ from tonic import DiskCachedDataset
 from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
 #import objects from other python files
+from model import MyNetwork, MLPNetwork
 from dataset import AnimalsDvsDataset, AnimalsDvsSliced
-from utils import plot_events, animate_events, animate_TD, slice_data
 from learning_tools import kfold_split, train_net, test_net
+from utils import plot_events, animate_events, animate_TD, slice_data
 
 
 #assert we are on the right working directory
@@ -35,9 +36,13 @@ net_params = snn.params("network.yaml")
 seed = net_params['training']['seed']     #fixing the seed
 test_losses, test_accuracies = [], []     #initializing test history
 
+#define output directory for the results
+results_path = net_params['training']['path']['out']
+os.makedirs(results_path, exist_ok=True)
+
 #creating a generator to split the data into 4 folds of train/test files
 train_test_generator = kfold_split(net_params['training']['path']['file_list'],
-                                    seed)
+                                   seed)
 
 #----------------------------- MAIN PROGRAM ------------------------------
 if __name__ == '__main__':  
@@ -52,7 +57,8 @@ if __name__ == '__main__':
         dataset_type = AnimalsDvsDataset
     
     #print header
-    print('Welcome to SLAYER Training! Starting 4-fold cross validation (train/test only)...')
+    print('Welcome to SLAYER Training!')
+    print('Starting 4-fold cross validation (train/test only): Please wait...\n')
     global_st_time = datetime.now()       #monitor total training time 
     
     #CROSS-VALIDATION: iterate for each fold
@@ -122,28 +128,60 @@ if __name__ == '__main__':
         test_loader = DataLoader(dataset=testing_set, batch_size=batchsize,
                                   shuffle=False, num_workers=4)
         
-        #**********************************************
-        # if fold > 1: # (to make adjusts) DELETE LATER
-        # *********************************************
-            
+        # Create network instance (Slayer SNN) -> send to device
+        net = MyNetwork(net_params).to(device) if net_params['training']['CNN'] \
+            else MLPNetwork(net_params).to(device)
+
+        # Define optimizer module.
+        if net_params['training']['optimizer'] == 'ADAM':
+            optimizer = torch.optim.Adam(net.parameters(), 
+                                         lr=net_params['training']['lr'], 
+                                         amsgrad=True)
+        elif net_params['training']['optimizer'] == 'NADAM':
+            optimizer = snn.utils.optim.Nadam(net.parameters(), 
+                                              lr=net_params['training']['lr'], 
+                                              amsgrad=True)
+        elif net_params['training']['optimizer'] == 'SGD':
+            optimizer = torch.optim.SGD(net.parameters(),
+                                        lr=net_params['training']['lr'])
+            # scheduler = LR.ExponentialLR(optimizer, 0.95)
+        else:
+            print("Optimizer option is not valid; using ADAM instead.")
+            optimizer = torch.optim.Adam(net.parameters(), 
+                                         lr=net_params['training']['lr'], 
+                                         amsgrad=True)
+
+        # Create snn loss instance -> send to device
+        error = snn.loss(net_params).to(device)
+
         #train the network
-        print('\nTRAINING FOLD = {}:'.format(fold))
-        print('events_transf={}, batch_size={}, binning={}, sliced_data={}'
-              .format(net_params['training']['transf_method'], batchsize,
+        print('\nTRAINING FOLD {}:'.format(fold))
+        print("-----------------------------------------------")
+        print('events_transf={}, binning={}, sliced_data={}, batch_size={},'
+              .format(net_params['training']['transf_method'], 
                       net_params['training']['binning_mode'],
-                      net_params['training']['sliced_dataset']))
-        print('simulation length={}ms, simulation step size={}ms, seed={}'
-              .format(net_params['simulation']['tSample'],
-                      net_params['simulation']['Ts'],
-                      net_params['training']['seed']))
-        train_stats = train_net(train_loader, test_loader, net_params,
-                                device, writer, epochs=1000, fold=fold)
-        min_loss = train_stats.testing.minloss      #min. val loss = test
-        max_acc  = train_stats.testing.maxAccuracy  #max. val accuracy = test
+                      net_params['training']['sliced_dataset'],
+                      batchsize))
+        print('optimizer={}, initial_lr={}, epochs={}, seed={},'.format(
+            net_params['training']['optimizer'],
+            net_params['training']['lr'],
+            net_params['training']['epochs'],
+            net_params['training']['seed']))
+        print('simulation length={}ms, simulation step size={}ms'.format(
+            net_params['simulation']['tSample'],
+            net_params['simulation']['Ts']))
+        
+        train_stats = train_net(net, optimizer, error, train_loader, test_loader, 
+                                net_params, device, writer, results_path, 
+                                epochs=net_params['training']['epochs'], fold=fold)
+        min_loss = train_stats.testing.minloss
+        max_acc  = train_stats.testing.maxAccuracy
         
         #test the network (for plotting purposes only)
-        print('\nStarting Testing of fold {}...'.format(fold))
-        test_stats = test_net(test_loader, net_params, device, writer, fold=fold)
+        print('\nTESTING FOLD {}:'.format(fold))
+        print("-----------------------------------------------")
+        test_stats = test_net(net, error, test_loader, net_params, device, writer, 
+                              results_path, fold=fold)
         
         #save this fold's losses and accuracies in history
         test_losses.append(min_loss)

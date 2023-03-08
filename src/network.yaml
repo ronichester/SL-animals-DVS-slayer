@@ -11,11 +11,15 @@ neuron:
     tauRho:   1     # spike function derivative time constant (relative to theta)
     scaleRho: 1     # spike function derivative scale factor
 training:
-    transf_method:    SlayerTD #TonicFrames (SlayerTD assumes fix_length=True)
-    fix_length:       True  # crop samples to the first 'tSample' ms
-    binning_mode:     OR #SUM (the way the spikes are binned into frames)
-    sliced_dataset:   True #False (True is a lighter/faster implementation)
-    seed:             0     # control the randomness reproducibility 
+    transf_method:    SlayerTD #TonicFrames (Transformation method from events to frames; SlayerTD assumes fix_length=True)
+    fix_length:       True  #crop samples to the first 'tSample' ms
+    binning_mode:     OR    #SUM (the way the spikes are binned into frames)
+    sliced_dataset:   True  #False (True is a lighter/faster implementation)
+    seed:             0     #control the randomness reproducibility 
+    optimizer:        ADAM  #NADAM; SGD
+    lr:               0.01  #initial learning rate
+    epochs:           1000  #maximum number of training epochs
+    CNN:              True  #if True use a spiking CNN, else use a spiking MLP
     error:
         type: NumSpikes #ProbSpikes #NumSpikes
         tgtSpikeRegion: {start: 0, stop: 1500}  # only valid for NumSpikes and ProbSpikes

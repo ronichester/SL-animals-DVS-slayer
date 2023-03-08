@@ -15,7 +15,6 @@ from datetime import datetime
 from sklearn.model_selection import KFold
 from slayerSNN.learningStats import learningStats
 from torch.optim import lr_scheduler as LR
-from model import MyNetwork  #MLPNetwork
 
 
 def kfold_split(fileList, seed, export_txt=False):
@@ -107,34 +106,14 @@ def plot_spike_raster(output, net_params, results_path, fold, label):
     plt.show()    #show both plots
 
 
-def train_net(train_loader, val_loader, net_params, device, writer, epochs, 
+def train_net(net, optimizer, error, train_loader, val_loader, 
+              net_params, device, writer, results_path, epochs, 
               fold=None, patience=100, pretrain=False, resume=False):
     
     #define some parameters
     start_time = datetime.now()          #measure total training time
     stats = learningStats()              #learning stats instance.
     no_improvement = 0                   #counter for val. loss improvement
-    
-    #define output directory for the results
-    results_path = net_params['training']['path']['out']
-    os.makedirs(results_path, exist_ok=True)
-    
-    # Create snn loss instance -> send to device
-    error = snn.loss(net_params).to(device)
-    
-    # Create network instance (Slayer SNN) -> send to device
-    #---- *************************************************** ----
-    # net = MLPNetwork(net_params).to(device)
-    net = MyNetwork(net_params).to(device)
-    #---- *************************************************** ----
-    
-    # Define optimizer module.
-    #---- *************************************************** ----
-    optimizer = torch.optim.Adam(net.parameters(), lr=0.01, amsgrad=True)
-    # optimizer = snn.utils.optim.Nadam(net.parameters(), lr=0.01, amsgrad=True)
-    # optimizer = torch.optim.SGD(net.parameters(), lr = 0.5) #0.1, 0.01, 0.001
-    # scheduler = LR.ExponentialLR(optimizer, 0.95)
-    #---- *************************************************** ----
     
     #if using pre-trained weights
     if pretrain:
@@ -305,23 +284,10 @@ def train_net(train_loader, val_loader, net_params, device, writer, epochs,
     return stats
 
 
-def test_net(test_loader, net_params, device, writer, fold=None):
+def test_net(net, error, test_loader, net_params, device, writer, results_path, fold=None):
     
     #initialize stats
     stats = learningStats()              #learning stats instance.
-    
-    #define output directory for the results
-    results_path = net_params['training']['path']['out']
-    os.makedirs(results_path, exist_ok=True)
-    
-    # Create snn loss instance -> send to device
-    error = snn.loss(net_params).to(device)
-    
-    # Create network instance (Slayer SNN) -> send to device
-    #---- *************************************************** ----
-    # net = MLPNetwork(net_params).to(device)
-    net = MyNetwork(net_params).to(device)
-    #---- *************************************************** ----
     
     #load best weights
     net.load_state_dict(
@@ -356,10 +322,6 @@ def test_net(test_loader, net_params, device, writer, fold=None):
     writer.add_scalar('Test Accuracy',  
                       100 * stats.testing.correctSamples / stats.testing.
                           numSamples)
-    for (name, param) in net.named_parameters():
-        if '_s' in name:
-            writer.add_histogram(name, param)
-    
     # Update stats.
     stats.update()
     

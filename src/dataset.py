@@ -130,11 +130,10 @@ class AnimalsDvsSliced(Dataset):
                     1.0 / self.samplingTime,            #set pixel value
                     input_spikes)                       #else keep value 0
             elif self.binMode == 'SUM' :
-                pass
-                # input_spikes = torch.where(
-                #     (input_spikes > 0),   #if spike:
-                #     input_spikes / input_spikes.max(),  #set pixel value
-                #     input_spikes)                       #else keep value 0
+                input_spikes = torch.where(
+                    (input_spikes > 0),   #if spike:
+                    input_spikes / input_spikes.max(),  #set pixel value
+                    input_spikes)                       #else keep value 0
             else:
                 print("Invalid binning mode; results are compromised!")
                 print("(binning_mode should be only 'OR' or 'SUM')")
