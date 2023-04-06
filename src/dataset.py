@@ -27,7 +27,7 @@ class AnimalsDvsSliced(Dataset):
         
         self.path = dataPath                               #string
         self.slicedDataPath = dataPath + 'sliced_recordings/'   #string
-        self.files = list_sliced_files(fileList)           #list [1121 files]
+        self.files = list_sliced_files(np.loadtxt(fileList, dtype='str')) #list [1121 files]
         self.samplingTime = samplingTime                   #5 [ms]
         self.sampleLength = sampleLength                   #1500 [ms]
         self.nTimeBins = int(sampleLength / samplingTime)  #300 bins 
@@ -42,17 +42,9 @@ class AnimalsDvsSliced(Dataset):
         return len(self.files)
     
     def __getitem__(self, index):
-        assert index >= 0 and index <= 1120
-   
-        #the sample file name
-        input_name  = self.files[index]
         
-        #load the sample file (NPY format)
-        events = np.load(self.slicedDataPath + input_name)
-        
-        #find sample class
-        class_index = index % 19                           #[0-18]
-        # class_name =  self.classes.iloc[class_index, 1]
+        #load the sample file (NPY format), class name and index
+        events, class_name, class_index, ss = self.get_sample(index)
         
         #prepare a target Tensor (class)
         desired_class = torch.zeros((19, 1, 1, 1))  #initialize class tensor
@@ -67,7 +59,7 @@ class AnimalsDvsSliced(Dataset):
             chosen_TD = events_to_TD(events)
             #transform Slayer events into Spike Tensor for SNN processing
             input_spikes = chosen_TD.toSpikeTensor(  #shape CHWT
-                torch.zeros((2, 128, 128, self.nTimeBins)),
+                torch.zeros((2, ss[0], ss[1], self.nTimeBins)),
                 samplingTime=self.samplingTime,      #in ms
                 # binningMode=self.binMode,            #default = 'OR'
                 )
@@ -83,7 +75,7 @@ class AnimalsDvsSliced(Dataset):
                     transforms.TimeAlignment(),         #1st event at t=0
                     transforms.CropTime(max=self.sampleLength),  #crop events
                     transforms.ToFrame(                 #events -> frames
-                        sensor_size = (128, 128, 2),
+                        sensor_size = (ss[0], ss[1], 2),
                         time_window=self.samplingTime,  #in ms
                         )
                     ])
@@ -92,7 +84,7 @@ class AnimalsDvsSliced(Dataset):
                     transforms.Downsample(time_factor=0.001),  #us to ms
                     transforms.TimeAlignment(),                #1st event at t=0
                     transforms.ToFrame(                        #events -> frames
-                        sensor_size = (128, 128, 2),
+                        sensor_size = (ss[0], ss[1], 2),
                         time_window=self.samplingTime,  #in ms
                         )
                     ])
@@ -108,7 +100,7 @@ class AnimalsDvsSliced(Dataset):
             if self.fixedLength:
                 if input_spikes.shape[-1] < self.nTimeBins:
                     padding = torch.zeros(
-                        (2, 128, 128, self.nTimeBins - input_spikes.shape[-1]))  
+                        (2, ss[1], ss[0], self.nTimeBins - input_spikes.shape[-1]))  
                     input_spikes = torch.cat([input_spikes, padding], dim=-1)
 
             #choice of binning mode
@@ -130,6 +122,7 @@ class AnimalsDvsSliced(Dataset):
                     1.0 / self.samplingTime,            #set pixel value
                     input_spikes)                       #else keep value 0
             elif self.binMode == 'SUM' :
+                #set all pixels with spikes to a normalized SUM value
                 input_spikes = torch.where(
                     (input_spikes > 0),   #if spike:
                     input_spikes / input_spikes.max(),  #set pixel value
@@ -143,6 +136,24 @@ class AnimalsDvsSliced(Dataset):
             print("('transf_method' should be 'SlayerTD' or 'TonicFrames')")
         
         return input_spikes, desired_class
+    
+    def get_sample(self, index):
+        #return the sample events, class name and class index of a sample
+        assert index >= 0 and index <= 1120
+   
+        #the sample file name
+        input_name  = self.files[index]
+        
+        #load the sample file (NPY format)
+        events = np.load(self.slicedDataPath + input_name)
+        
+        #find sample class
+        class_index = index % 19                           #[0-18]
+        class_name =  self.classes.iloc[class_index, 1]
+        
+        sensor_shape = (128, 128)
+        
+        return events, class_name, class_index, sensor_shape
     
 
 # Dataset definition

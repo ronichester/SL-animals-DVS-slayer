@@ -8,17 +8,18 @@ Author: Schechter
 #import libraries
 import os
 import torch
+import random
 import numpy as np
 import slayerSNN as snn
 #import objects from libraries
 from datetime import datetime
 from tonic import DiskCachedDataset
-from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader
 #import objects from other python files
 from model import MyNetwork, MLPNetwork
 from dataset import AnimalsDvsDataset, AnimalsDvsSliced
-from learning_tools import kfold_split, train_net, test_net
+from learning_tools import kfold_split, train_net, test_net, get_optimizer
 from utils import plot_events, animate_events, animate_TD, slice_data
 
 
@@ -33,8 +34,14 @@ device = torch.device('cuda')
 net_params = snn.params("network.yaml")
 
 #initializing variables
-seed = net_params['training']['seed']     #fixing the seed
 test_losses, test_accuracies = [], []     #initializing test history
+seed = net_params['training']['seed']     #fixing the seed
+
+#set the seed for reproducibility
+random.seed(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+torch.backends.cudnn.deterministic = True
 
 #define output directory for the results
 results_path = net_params['training']['path']['out']
@@ -133,24 +140,8 @@ if __name__ == '__main__':
             else MLPNetwork(net_params).to(device)
 
         # Define optimizer module.
-        if net_params['training']['optimizer'] == 'ADAM':
-            optimizer = torch.optim.Adam(net.parameters(), 
-                                         lr=net_params['training']['lr'], 
-                                         amsgrad=True)
-        elif net_params['training']['optimizer'] == 'NADAM':
-            optimizer = snn.utils.optim.Nadam(net.parameters(), 
-                                              lr=net_params['training']['lr'], 
-                                              amsgrad=True)
-        elif net_params['training']['optimizer'] == 'SGD':
-            optimizer = torch.optim.SGD(net.parameters(),
-                                        lr=net_params['training']['lr'])
-            # scheduler = LR.ExponentialLR(optimizer, 0.95)
-        else:
-            print("Optimizer option is not valid; using ADAM instead.")
-            optimizer = torch.optim.Adam(net.parameters(), 
-                                         lr=net_params['training']['lr'], 
-                                         amsgrad=True)
-
+        optimizer = get_optimizer(net, net_params)
+        
         # Create snn loss instance -> send to device
         error = snn.loss(net_params).to(device)
 
@@ -173,7 +164,8 @@ if __name__ == '__main__':
         
         train_stats = train_net(net, optimizer, error, train_loader, test_loader, 
                                 net_params, device, writer, results_path, 
-                                epochs=net_params['training']['epochs'], fold=fold)
+                                epochs=net_params['training']['epochs'], 
+                                fold=fold)
         min_loss = train_stats.testing.minloss
         max_acc  = train_stats.testing.maxAccuracy
         

@@ -42,6 +42,27 @@ def kfold_split(fileList, seed, export_txt=False):
     return gen()  #returns a generator!
 
 
+def get_optimizer(net, params):
+    """ Returns an optimizer given a network and parameters """
+    if params['training']['optimizer'] == 'ADAM':
+        optimizer = torch.optim.Adam(net.parameters(), 
+                                      lr=params['training']['lr'], 
+                                      amsgrad=True)
+    elif params['training']['optimizer'] == 'NADAM':
+        optimizer = snn.utils.optim.Nadam(net.parameters(), 
+                                          lr=params['training']['lr'], 
+                                          amsgrad=True)
+    elif params['training']['optimizer'] == 'SGD':
+        optimizer = torch.optim.SGD(net.parameters(),
+                                    lr=params['training']['lr'])
+    else:
+        print("Optimizer option is not valid; using ADAM instead.")
+        optimizer = torch.optim.Adam(net.parameters(), 
+                                      lr=params['training']['lr'], 
+                                      amsgrad=True)
+    return optimizer
+
+
 def plot_spike_raster(output, net_params, results_path, fold, label):
     """
     Plot output spike RASTER and HISTOGRAM
@@ -108,12 +129,16 @@ def plot_spike_raster(output, net_params, results_path, fold, label):
 
 def train_net(net, optimizer, error, train_loader, val_loader, 
               net_params, device, writer, results_path, epochs, 
-              fold=None, patience=100, pretrain=False, resume=False):
+              fold=None, patience=100, pretrain=False, resume=False, 
+              reduceLR=False):
     
     #define some parameters
     start_time = datetime.now()          #measure total training time
     stats = learningStats()              #learning stats instance.
     no_improvement = 0                   #counter for val. loss improvement
+    
+    #define learning rate scheduler
+    scheduler = LR.ExponentialLR(optimizer, 0.95)
     
     #if using pre-trained weights
     if pretrain:
@@ -165,6 +190,7 @@ def train_net(net, optimizer, error, train_loader, val_loader,
             stats.training.correctSamples += torch.sum( 
                 snn.predict.getClass(output) == label ).data.item()
             
+            
             # Display training stats. (every 10th batch and at last batch)
             if (i%10 == 0 or i+1 == len(train_loader)):   
                 stats.print(
@@ -213,6 +239,9 @@ def train_net(net, optimizer, error, train_loader, val_loader,
         for (name, param) in net.named_parameters():
             writer.add_histogram(name, param, epoch)
         
+        #save variable for later
+        actual_train_accuracy = stats.training.accuracy()
+        
         # Update stats.
         stats.update()
         
@@ -224,8 +253,8 @@ def train_net(net, optimizer, error, train_loader, val_loader,
         else:
             no_improvement += 1          #increase counter
             
-        #check for early stopping after at least 200 epochs
-        if (epoch >= 200 and no_improvement >= patience):
+        #check for early stopping after 200 epochs and train_acc >= 0.75
+        if (epoch >= 200 and no_improvement >= patience and actual_train_accuracy >= 0.75):
             print('Early stopping after {} epochs!'.format(epoch + 1))
             #save a checkpoint, if later needed to resume training
             torch.save({
@@ -235,9 +264,10 @@ def train_net(net, optimizer, error, train_loader, val_loader,
                     'loss': loss,
                     }, results_path + 'checkpoint{}.tar'.format(fold))
             break
-       
+        
         #Reduce LR by schedule at the end of every epoch
-        # scheduler.step()
+        if reduceLR:
+            scheduler.step()
 
         #end of epoch---------------------------------------
     
