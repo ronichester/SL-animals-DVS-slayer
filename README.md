@@ -2,7 +2,7 @@
 This repository contains a SLAYER (Spiking Layer Error Reassignment in Time) implementation on the SL-Animals-DVS dataset using Pytorch and the SLAYER package software.
 
 **A BRIEF INTRODUCTION:**  
-SLAYER is an offline training method that directly trains a Spiking Neural Network (SNN).  
+SLAYER is an offline training method that directly trains a Spiking Neural Network (SNN). 
 Therefore, it is a suitable method to train SNNs, which are biologically plausible networks (in short).  
 The SL-animals-DVS is a dataset of sign language (SL) gestures peformed by different people representing animals, and recorded with a Dynamic Vision Sensor (DVS).  
 
@@ -14,11 +14,9 @@ The SL-animals-DVS is a dataset of sign language (SL) gestures peformed by diffe
 
 <p align="center"> </p>  
 
-The reported results in the SL-animals paper were divided in two: results with the full dataset and results with a reduced dataset, meaning excluding group S3. The results achieved with the implementation published here fall short of the published results, but get fairly close, considering the published results have no code available to reproduce them. 
-
-<p align="center"> </p>  
-
-**The implementation published in this repository is the first one publicly available on the SL-animals dataset** (and the only one as of may 2023, as far as I know). The results are summarized below:
+The reported results in the SL-animals paper were divided in two: results with the full dataset and results with a reduced dataset, meaning excluding group S3. The results achieved with the implementation published here fall short of the published results, but get fairly close, considering the published results have no code available to reproduce them.  
+  
+**The implementation published in this repository is the first publicly available SLAYER implementation on the SL-animals dataset** (and the only one as of may 2023, as far as I know). The results are summarized below:
 
 |       | Full Dataset | Reduced Dataset |
 |:-:|:-:|:-:|
