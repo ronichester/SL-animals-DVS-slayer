@@ -276,12 +276,13 @@ def train_net(net, optimizer, error, train_loader, val_loader,
     print('Total Training Time:', end_time-start_time)
     
     # Plot the results.
+    colors = ['b', 'g', 'r', 'm']
     # Learning loss
     plt.figure(1)
     # plt.semilogy(stats.training.lossLog, label='Training')
     # plt.semilogy(stats.testing .lossLog, label='Validation')
-    plt.plot(stats.training.lossLog, label='Training')
-    plt.plot(stats.testing .lossLog, label='Validation')
+    plt.plot(stats.training.lossLog, ':' + colors[fold-1], label='fold {} training'.format(fold))
+    plt.plot(stats.testing .lossLog, '-' + colors[fold-1], label='fold {} validation'.format(fold))
     plt.xlabel('Epoch', fontsize=14)
     plt.ylabel('Loss', fontsize=14)
     plt.legend()
@@ -289,14 +290,13 @@ def train_net(net, optimizer, error, train_loader, val_loader,
     plt.title('Loss using ' + net_params['training']['transf_method'],
               fontweight='bold', fontsize=14)
     #save the figure
-    save_path = results_path + 'loss_ws10_batch{}_ADAM_fold{}.png'.format(
-        net_params['simulation']['nSample'], fold)
+    save_path = results_path + 'loss_fold{}.png'.format(fold)
     plt.savefig(save_path)
     
     # Learning accuracy
     plt.figure(2)
-    plt.plot(stats.training.accuracyLog, label='Training')
-    plt.plot(stats.testing .accuracyLog, label='Validation')
+    plt.plot(stats.training.accuracyLog, ':' + colors[fold-1], label='fold {} training'.format(fold))
+    plt.plot(stats.testing .accuracyLog, '-' + colors[fold-1], label='fold {} validation'.format(fold))
     plt.xlabel('Epoch', fontsize=14)
     plt.ylabel('Accuracy', fontsize=14)
     plt.legend()
@@ -305,8 +305,7 @@ def train_net(net, optimizer, error, train_loader, val_loader,
     plt.title('Accuracy using ' + net_params['training']['transf_method'],
               fontweight='bold', fontsize=14)
     #save the figure
-    save_path = results_path + 'accuracy_ws10_batch{}_ADAM_fold{}.png'.format( 
-        net_params['simulation']['nSample'], fold)
+    save_path = results_path + 'accuracy_fold{}.png'.format(fold)
     plt.savefig(save_path)
     
     plt.show()  #show both plots
