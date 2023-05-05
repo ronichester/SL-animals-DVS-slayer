@@ -6,11 +6,11 @@ SLAYER is an offline training method that directly trains a Spiking Neural Netwo
 Therefore, it is a suitable method to train SNNs, which are biologically plausible networks (in short).  
 The SL-animals-DVS is a dataset of sign language (SL) gestures peformed by different people representing animals, and recorded with a Dynamic Vision Sensor (DVS).  
 
-<p align="left">
-<img src="https://github.com/ronichester/SL-animals-DVS-slayer/blob/main/samples_and_outputs/SL_animals_sample2.gif" width="250px></p>
+<p align="center">
+<img src="https://github.com/ronichester/SL-animals-DVS-slayer/blob/main/samples_and_outputs/SL_animals_sample2.gif" width="600px"></p>
 
-<p align="right">
-<img src="https://github.com/ronichester/SL-animals-DVS-slayer/blob/main/samples_and_outputs/SL_animals_sample10.gif" width="250px></p>
+<p align="center">
+<img src="https://github.com/ronichester/SL-animals-DVS-slayer/blob/main/samples_and_outputs/SL_animals_sample10.gif" width="600px"></p>
 
 <p align="center"> </p>  
 
