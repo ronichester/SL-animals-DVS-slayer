@@ -2,16 +2,27 @@
 This repository contains a SLAYER (Spiking Layer Error Reassignment in Time) implementation on the SL-Animals-DVS dataset using Pytorch and the SLAYER package software.
 
 **A BRIEF INTRODUCTION:**  
-SLAYER is an offline training method that directly trains a Spiking Neural Network (SNN).  
+SLAYER is an offline training method that directly trains a Spiking Neural Network (SNN). 
 Therefore, it is a suitable method to train SNNs, which are biologically plausible networks (in short).  
 The SL-animals-DVS is a dataset of sign language (SL) gestures peformed by different people representing animals, and recorded with a Dynamic Vision Sensor (DVS).  
 
 <p align="center">
-<img src="https://media.springernature.com/lw685/springer-static/image/art%3A10.1007%2Fs10044-021-01011-w/MediaObjects/10044_2021_1011_Fig4_HTML.png" width="300px></p>
+<img src="https://github.com/ronichester/SL-animals-DVS-slayer/blob/main/samples_and_outputs/SL_animals_sample2.gif" width="600px"></p>
+
+<p align="center">
+<img src="https://github.com/ronichester/SL-animals-DVS-slayer/blob/main/samples_and_outputs/SL_animals_sample10.gif" width="600px"></p>
 
 <p align="center"> </p>  
 
-The reported results in the SL-animals paper were a test accuracy of 60.9% +- 4.58% in the whole dataset and 78.03% +- 3.08% on the reduced dataset (excluding group S3). The results achieved with the implementation published here, using train/test sets only: **Test Accuracy (whole dataset): 54.83% +- 6.61%; Test Accuracy (exluding S3): 62.05% +- 5.78%**.  
+The reported results in the SL-animals paper were divided in two: results with the full dataset and results with a reduced dataset, meaning excluding group S3. The results achieved with the implementation published here fall short of the published results, but get fairly close, considering the published results have no code available to reproduce them.  
+  
+**The implementation published in this repository is the first publicly available SLAYER implementation on the SL-animals dataset** (and the only one as of may 2023, as far as I know). The results are summarized below:
+
+|       | Full Dataset | Reduced Dataset |
+|:-:|:-:|:-:|
+| Reported Results    | 60.9 +- 4.58 % | 78.03 +- 3.08 % |
+| This Implementation | 54.3 +- 6.14 % | 61.41 +- 3.28 % |
+
            
 ## Requirements
 While not sure if the list below contains the actual minimums, it will run for sure if you do have the following:
