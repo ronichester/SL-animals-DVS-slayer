@@ -7,6 +7,7 @@ Author: Schechter
 """
 #import libraries
 import os
+import gc
 import torch
 import random
 import numpy as np
@@ -14,14 +15,15 @@ import slayerSNN as snn
 #import objects from libraries
 from datetime import datetime
 from tonic import DiskCachedDataset
-from torch.utils.data import DataLoader
 from tensorboardX import SummaryWriter
+from torch.utils.data import DataLoader
 from sklearn.model_selection import train_test_split
 #import objects from other python files
 from model import MyNetwork, MLPNetwork
 from dataset import AnimalsDvsDataset, AnimalsDvsSliced
 from learning_tools import kfold_split, train_net, test_net, get_optimizer
 from utils import plot_events, animate_events, animate_TD, slice_data
+from custom_spikeLoss import spikeLoss
 
 
 #assert we are on the right working directory
@@ -86,26 +88,30 @@ if __name__ == '__main__':
             fileList     = train_set,
             samplingTime = net_params['simulation']['Ts'],
             sampleLength = net_params['simulation']['tSample'],
-            fixedLength  = net_params['training']['fix_length'],
             transfMethod = net_params['training']['transf_method'],
+            randomCrop   = net_params['training']['random_crop'],
             binMode      = net_params['training']['binning_mode'],
             )
         validation_set = dataset_type(
             dataPath     = net_params['training']['path']['data'],
             fileList     = val_set,
             samplingTime = net_params['simulation']['Ts'],
-            sampleLength = net_params['simulation']['tSample'],
-            fixedLength  = net_params['training']['fix_length'],
+            sampleLength = net_params['testing']['tSample'] if 
+                           net_params['training']['random_crop'] else 
+                           net_params['simulation']['tSample'],
             transfMethod = net_params['training']['transf_method'],
+            randomCrop   = False,    #randomCrop is a feature for training only
             binMode      = net_params['training']['binning_mode'],
             )
         testing_set = dataset_type(
             dataPath     = net_params['training']['path']['data'],
             fileList     = test_set,
             samplingTime = net_params['simulation']['Ts'],
-            sampleLength = net_params['simulation']['tSample'],
-            fixedLength  = net_params['training']['fix_length'],
+            sampleLength = net_params['testing']['tSample'] if 
+                           net_params['training']['random_crop'] else 
+                           net_params['simulation']['tSample'],
             transfMethod = net_params['training']['transf_method'],
+            randomCrop   = False,    #randomCrop is a feature for training only
             binMode      = net_params['training']['binning_mode'],
             )
         
@@ -146,9 +152,7 @@ if __name__ == '__main__':
         dataset has different sample lengths, the only way to achieve training 
         in batches is to crop all the samples to a fixed length size.
         """
-        batchsize = net_params['simulation']['nSample'] if \
-                    net_params['training']['fix_length'] else 1
-
+        batchsize = net_params['simulation']['nSample']
         train_loader = DataLoader(dataset=training_set, batch_size=batchsize,
                                   shuffle=False, num_workers=4)
         val_loader = DataLoader(dataset=validation_set, batch_size=batchsize,
@@ -164,16 +168,18 @@ if __name__ == '__main__':
         optimizer = get_optimizer(net, net_params)
 
         # Create snn loss instance -> send to device
-        error = snn.loss(net_params).to(device)
+        # error = snn.loss(net_params).to(device)
+        error = spikeLoss(net_params).to(device)
         
         #train the network
         print('\nTRAINING FOLD {}:'.format(fold))
         print("-----------------------------------------------")
-        print('events_transf={}, binning={}, sliced_data={}, batch_size={},'
+        print('events_transf={}, binning={}, sliced_data={}, batch_size={}, random_crop={}'
               .format(net_params['training']['transf_method'], 
                       net_params['training']['binning_mode'],
                       net_params['training']['sliced_dataset'],
-                      batchsize))
+                      batchsize,
+                      net_params['training']['random_crop']))
         print('optimizer={}, initial_lr={}, epochs={}, seed={},'.format(
             net_params['training']['optimizer'],
             net_params['training']['lr'],

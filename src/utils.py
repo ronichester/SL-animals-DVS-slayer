@@ -66,8 +66,9 @@ def animate_events(dataset, sample_index, time_window=50, frame_rate=24, repeat=
 #visualize dataset sample on plots (by time bins)
 def plot_events(dataset, sample_index):
     """
-    Generates a plot with 3 frames on a dataset sample. The events of a sample
-    are divided in 3 time bins, each frame accumulates the events of 1 bin.
+    Generates a plot with 8 frames on a dataset sample. The events of a sample
+    are divided in 8 time bins, each frame accumulates the events of 1 bin.
+    
     """
     #get sample events, class name, class index (ci) and sensor shape (ss)
     sample_events, sample_class, ci, ss = dataset.get_sample(sample_index)
@@ -77,16 +78,28 @@ def plot_events(dataset, sample_index):
     frame_transform = transforms.Compose([
         transforms.Downsample(time_factor=0.001),       # us to ms
         transforms.TimeAlignment(),                     # 1st event at t=0
-        transforms.ToFrame(sensor_size, n_time_bins=3)  # events -> 3 frames
+        transforms.ToFrame(sensor_size, n_time_bins=8)  # events -> 8 frames
         ])  
     frames = frame_transform(sample_events)
 
     def plot_frames(frames):
-        fig, axes = plt.subplots(1, len(frames))
+        lines = 2                  #number of lines to plot
+        cols = len(frames)//lines  #number of columns to plot
+        fig, axes = plt.subplots(lines, cols, figsize=(10,5))
         fig.suptitle("class name: {}".format(sample_class))
-        for axis, frame in zip(axes, frames):
-            axis.imshow((frame[1] - frame[0]).T, cmap='gray')
-            axis.axis("off")
+        for line in range(lines):
+            for axis, frame in zip(axes[line], frames[cols*line:cols*(line+1)]):
+                axis.imshow((frame[1] - frame[0]).T, cmap='gray')
+                axis.axis("off")
+                # axis.title("frame {}".format(i+1))
+        
+        #FIRST IMPLEMENTATION: 1 line x 3 frames        
+        # fig, axes = plt.subplots(1, len(frames), figsize=(10,5))
+        # for axis, frame in zip(axes, frames):
+        #     axis.imshow((frame[1] - frame[0]).T, cmap='gray')
+        #     axis.axis("off")
+        #     # axis.title("frame {}".format(i+1))
+        
         plt.tight_layout()
         plt.show()
     

@@ -52,14 +52,14 @@ class MyNetwork(torch.nn.Module):
         #self.params = netParams
         # define network layers
         self.pool1 = slayer.pool(2)
-        self.conv1 = slayer.conv(2, 8, 5, padding=2, weightScale=10) #TESTING
+        self.conv1 = slayer.conv(2, 8, 5, padding=2, weightScale=10)
         self.pool2 = slayer.pool(2)
-        self.conv2 = slayer.conv(8, 16, 5, padding=2, weightScale=10)#TESTING
+        self.conv2 = slayer.conv(8, 16, 5, padding=2, weightScale=10)
         self.pool3 = slayer.pool(2)
         # self.fc1   = slayer.dense((16, 16, 16), 100) #if not reshaped
         self.fc1   = slayer.dense((16*16*16), 100)     #if reshaped
         self.fc2   = slayer.dense(100, 19)
-        # self.drop  = slayer.dropout(0.1)             #### TEST LATER ####
+        # self.drop  = slayer.dropout(0.3)             #### 30% dropout ####
         
     def forward(self, spikeInput):
         """
@@ -69,25 +69,23 @@ class MyNetwork(torch.nn.Module):
         spikeOut:   Torch Tensor of type float32 shaped [batch-CHWT]
                     It's the output spike train
         
-        To increase speed, it's recommended to ignore the spatial dimension and 
-        place neurons in the channel (C) dimension. [B, C*H*W, 1, 1, T]
+        To increase speed, for the fully connected layers it's recommended to 
+        ignore the spatial dimension and place neurons in the channel (C) 
+        dimension. [B, C*H*W, 1, 1, T]
         """
         #spikeInput shape 2x128x128
-        spike    = self.slayer.spike(self.slayer.psp(self.pool1(spikeInput))) # 2x64x64
-        #spike = self.slayer.delayShift(spike, 1, Ts=self.params['simulation']['Ts'])
-        spike    = self.slayer.spike(self.slayer.psp(self.conv1(spike))) # 8x64x64
-        #spike = self.slayer.delayShift(spike, 1, Ts=self.params['simulation']['Ts'])
-        spike    = self.slayer.spike(self.slayer.psp(self.pool2(spike))) # 8x32x32
-        #spike = self.slayer.delayShift(spike, 1, Ts=self.params['simulation']['Ts'])
-        spike    = self.slayer.spike(self.slayer.psp(self.conv2(spike))) # 16x32x32
-        #spike = self.slayer.delayShift(spike, 1, Ts=self.params['simulation']['Ts'])
-        spike    = self.slayer.spike(self.slayer.psp(self.pool3(spike))) # 16x16x16
-        #reshaping the spikes to increase speed                          # 4096x1x1
-        spike    = spike.reshape((spike.shape[0], -1, 1, 1, spike.shape[-1]))
-        #spike = self.slayer.delayShift(spike, 1, Ts=self.params['simulation']['Ts'])
-        spike    = self.slayer.spike(self.slayer.psp(self.fc1  (spike))) # 100x1x1
-        #spike = self.slayer.delayShift(spike, 1, Ts=self.params['simulation']['Ts'])
-        spikeOut = self.slayer.spike(self.slayer.psp(self.fc2  (spike))) # 19x1x1
-        #spikeOut = self.slayer.delayShift(spikeOut, 1, Ts=self.params['simulation']['Ts'])
+        spike    = self.slayer.spike(self.slayer.psp(self.pool1(spikeInput)))          #POOL: output 2x64x64
+    
+        spike    = self.slayer.spike(self.slayer.psp(self.conv1(spike)))               #CONV: output 8x64x64
+        spike    = self.slayer.spike(self.slayer.psp(self.pool2(spike)))               #POOL: output 8x32x32 
+        
+        spike    = self.slayer.spike(self.slayer.psp(self.conv2(spike)))               #CONV: output 16x32x32
+        spike    = self.slayer.spike(self.slayer.psp(self.pool3(spike)))               #POOL: output 16x16x16
+        #reshaping the spikes to increase speed, before FC (Dense) layers                      
+        spike    = spike.reshape((spike.shape[0], -1, 1, 1, spike.shape[-1]))          #RESHAPE: output 4096x1x1
+        # spike    = self.drop(spike)                                                    #DROPOUT: used 0.1 in Loihi/IBM-gestures
+        
+        spike    = self.slayer.spike(self.slayer.psp(self.fc1  (spike)))               #DENSE: output 100x1x1
+        spikeOut = self.slayer.spike(self.slayer.psp(self.fc2  (spike)))               #DENSE: output 19x1x1
         
         return spikeOut

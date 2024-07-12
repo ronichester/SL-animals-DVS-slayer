@@ -166,6 +166,7 @@ def train_net(net, optimizer, error, train_loader, val_loader,
         # Training Loop
         net.train()                      #prep. model for training
         for i, (input, target) in enumerate(train_loader):
+                   
             #get a label vector for this batch
             label = np.argmax(target, axis=1).squeeze()
             
@@ -177,8 +178,8 @@ def train_net(net, optimizer, error, train_loader, val_loader,
             output = net.forward(input)  #output spike train
             
             # Calculate loss
-            loss = error.numSpikes(output, target)
-    
+            loss = error.numSpikes(output, target) 
+            
             # Gradient BackProp and weight update
             optimizer.zero_grad()        #clear the gradients
             loss.backward()              #backpropagation of error
@@ -218,7 +219,7 @@ def train_net(net, optimizer, error, train_loader, val_loader,
                 #feed forward
                 output = net.forward(input)  #output batch
                 #calculate test loss
-                val_loss = error.numSpikes(output, target) 
+                val_loss = error.numSpikes(output, target, Train=False)
                 #statistics
                 stats.testing.numSamples     += len(target)
                 stats.testing.lossSum        += val_loss.cpu().data.item()
@@ -245,16 +246,17 @@ def train_net(net, optimizer, error, train_loader, val_loader,
         # Update stats.
         stats.update()
         
-        #save best weights
+        #save best weights 
         if stats.testing.bestLoss:       #if validation loss reduces
             torch.save(net.state_dict(), 
                        results_path + 'model_weights_fold{}.pth'.format(fold))
             no_improvement = 0           #reset counter
         else:
             no_improvement += 1          #increase counter
+        
             
-        #check for early stopping after 200 epochs and train_acc >= 0.75
-        if (epoch >= 200 and no_improvement >= patience and actual_train_accuracy >= 0.75):
+        #check for early stopping after 200 epochs and train_acc >= 0.80
+        if (epoch >= 200 and no_improvement >= patience and actual_train_accuracy >= 0.80):
             print('Early stopping after {} epochs!'.format(epoch + 1))
             #save a checkpoint, if later needed to resume training
             torch.save({
@@ -270,6 +272,11 @@ def train_net(net, optimizer, error, train_loader, val_loader,
             scheduler.step()
 
         #end of epoch---------------------------------------
+        
+    #check if there is at least one set of saved weights
+    if not os.path.isfile(results_path + 'model_weights_fold{}.pth'.format(fold)):
+        torch.save(net.state_dict(), 
+                   results_path + 'model_weights_fold{}.pth'.format(fold))
     
     #measure testing time
     end_time = datetime.now()
@@ -335,7 +342,7 @@ def test_net(net, error, test_loader, net_params, device, writer, results_path, 
             #feed forward
             output = net.forward(input)  #output batch
             #calculate test loss
-            loss = error.numSpikes(output, target) 
+            loss = error.numSpikes(output, target, Train=False)
             #statistics
             stats.testing.numSamples     += len(target)
             stats.testing.lossSum += loss.cpu().data.item()
