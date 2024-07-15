@@ -1,5 +1,5 @@
-# SL-animals-DVS training with SLAYER
-This repository contains a SLAYER (Spiking Layer Error Reassignment in Time) implementation on the SL-Animals-DVS dataset using Pytorch and the SLAYER package software.
+# SL-animals-DVS training with SLAYER (improved)
+This repository contains a SLAYER (Spiking Layer Error Reassignment in Time) implementation on the SL-Animals-DVS dataset using Pytorch and the SLAYER package software.  The first results reported in this repository were an initial atempt to reproduce the published results. Additionally, improvements were made to the original implementation, optimizing the input data and the spiking neural network in order to enhance the gesture recognition performance. Details of the techniques applied can be found in the following [conference paper](https://ieeexplore.ieee.org/document/10506133), published in LASCAS 2024.
 
 **A BRIEF INTRODUCTION:**  
 SLAYER is an offline training method that directly trains a Spiking Neural Network (SNN). 
@@ -22,6 +22,7 @@ The reported results in the SL-animals paper were divided in two: results with t
 |:-:|:-:|:-:|
 | Reported Results    | 60.9 +- 4.58 % | 78.03 +- 3.08 % |
 | This Implementation | 54.3 +- 6.14 % | 61.41 +- 3.28 % |
+| **Optimized Version**   | **66.40 +- 5.79%** |       N/A       |
 
            
 ## Requirements
@@ -49,11 +50,11 @@ The SL-Animals-DVS dataset implementation code is in *dataset.py*, and it's basi
 
 The main functions to train, test, split the dataset and plot the results are in *learning_tools.py*. The Spiking Neural Network model is in *model.py* (MyNetwork), and reproduces the architecture described in the SL-animals paper. The file *network.yaml* contains the main parameters that can be customized like *batch size*, *sampling time*, *simulation window*, *neuron type*, *data path*, and many others.  
 
-A new feature was introduced as an option, allowing the use of random sample crops for training instead of the fixed crops starting at the beggining of the sample, as in the original paper implementation. This allows further exploration of the available data in the dataset.
+A new feature was introduced as an option, allowing the use of random sample crops for training instead of the fixed crops starting at the beggining of the sample, as in the original paper implementation. This allows further exploration of the available data in the dataset, and that's how I got the best results in the table above. Check my [published paper](https://ieeexplore.ieee.org/document/10506133) for implementation details.  
 
- The main program is in *sl_animals_slayer.py*, which uses the correct experimental procedure for training a network using cross validation after dividing the dataset into train, validation and test sets. A simpler version of the main program is in *train_test_only.py*, which is basically the same except dividing the dataset only into train and test sets, in an effort to replicate the published results. Apparently, the benchmark results were reported in this simpler dataset split configuration.  
+The main program is in *sl_animals_slayer.py*, which uses the correct experimental procedure for training a network using cross validation after dividing the dataset into train, validation and test sets. A simpler version of the main program is in *train_test_only.py*, which is basically the same except dividing the dataset only into train and test sets, in an effort to replicate the published results. Apparently, the benchmark results were reported in this simpler dataset split configuration.  
 
- Finally, *utils.py* contains some functions to visualize the dataset samples, and split the dataset recordings into slices and saving it to disk.
+Finally, *utils.py* contains some functions to visualize the dataset samples, and split the dataset recordings into slices and saving it to disk.
 
 ## Use
 1. Clone this repository:
@@ -80,6 +81,7 @@ tensorboard --logdir=logs
   
 
 ## References 
+- C. R. Schechter and J. G. R. C. Gomes, ["Enhancing Gesture Recognition Performance Using Optimized Event-Based Data Sample Lengths and Crops"](https://doi.org/10.1109/LASCAS60203.2024.10506133), 2024 IEEE 15th Latin America Symposium on Circuits and Systems (LASCAS), Punta del Este, Uruguay, pp. 1-5, (2024).
 - Vasudevan, A., Negri, P., Di Ielsi, C. et al. ["SL-Animals-DVS: event-driven sign language animals dataset"](https://doi.org/10.1007/s10044-021-01011-w) . *Pattern Analysis and Applications 25, 505–520 (2021)*. 
 - Shrestha SB, Orchard G; [SLAYER: spike layer error reassignment in time](https://arxiv.org/pdf/1810.08646); *Advances in neural information processing systems, pp 1412–1421 (2018)*
 - The original dataset can be downloaded [here](http://www2.imse-cnm.csic.es/neuromorphs/index.php/SL-ANIMALS-DVS-Database)
