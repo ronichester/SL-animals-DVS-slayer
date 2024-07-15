@@ -49,7 +49,9 @@ The SL-Animals-DVS dataset implementation code is in *dataset.py*, and it's basi
 
 The main functions to train, test, split the dataset and plot the results are in *learning_tools.py*. The Spiking Neural Network model is in *model.py* (MyNetwork), and reproduces the architecture described in the SL-animals paper. The file *network.yaml* contains the main parameters that can be customized like *batch size*, *sampling time*, *simulation window*, *neuron type*, *data path*, and many others.  
 
- The main program is in *sl_animals_slayer.py*, which uses the correct experimental procedure for training a network using cross validation after dividing the dataset into train, validation and test sets. A simpler version of the main program is in *train_test_only.py*, which is basically the same except dividing the dataset only into train and test sets, in an effort to replicate the published results. Apparently, the benchmark results were reported in this simpler dataset split configuration, which is not optimal.  
+A new feature was introduced as an option, allowing the use of random sample crops for training instead of the fixed crops starting at the beggining of the sample, as in the original paper implementation. This allows further exploration of the available data in the dataset.
+
+ The main program is in *sl_animals_slayer.py*, which uses the correct experimental procedure for training a network using cross validation after dividing the dataset into train, validation and test sets. A simpler version of the main program is in *train_test_only.py*, which is basically the same except dividing the dataset only into train and test sets, in an effort to replicate the published results. Apparently, the benchmark results were reported in this simpler dataset split configuration.  
 
  Finally, *utils.py* contains some functions to visualize the dataset samples, and split the dataset recordings into slices and saving it to disk.
 
